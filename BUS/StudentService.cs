@@ -11,7 +11,10 @@ namespace BUS
         {
             _studentDal = new StudentDAL();
         }
-
+        public List<Faculty> getAllFaculty()
+        {
+            return _studentDal.GetFaculties();
+        }
         public List<dynamic> GetAllStudents()
         {
             return _studentDal.GetAllStudents();
@@ -21,7 +24,7 @@ namespace BUS
             return _studentDal.DeleteStudent(studentID);
         }
 
-        public List<Student> GetStudentsWithoutMajor()
+        public List<dynamic> GetStudentsWithoutMajor()
         {
             return _studentDal.GetStudentsWithoutMajor();
         }

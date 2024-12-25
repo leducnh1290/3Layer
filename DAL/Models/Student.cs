@@ -16,6 +16,9 @@ namespace DAL.Models
         public string FullName { get; set; }
 
         public int? MajorID { get; set; }
+        public int? FacultyID { get; set; }
+        public virtual Faculty Faculty { get; set; }
+
 
         public double AverageScore { get; set; }
 

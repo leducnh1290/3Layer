@@ -18,16 +18,26 @@ namespace DAL
             {
                 s.StudentID,
                 s.FullName,
-                s.MajorID,
+                s.Faculty.FacultyName,
                 s.AverageScore,
-                MajorName = s.Major != null ? s.Major.Name : "N/A"
+                MajorID = s.MajorID != null ? s.Major.MajorID : -1,
+                MajorName = s.Major != null ? s.Major.Name : "Chưa ĐKCN"
             }).ToList<dynamic>();
         }
 
-
-        public List<Student> GetStudentsWithoutMajor()
+        public List<Faculty> GetFaculties()
         {
-            return _context.Students.Where(s => s.MajorID == null).ToList();
+            return _context.Faculties.ToList();
+        }
+        public List<dynamic> GetStudentsWithoutMajor()
+        {
+            return _context.Students.Where(s => s.MajorID == null).Select(s => new
+            {
+                s.StudentID,
+                s.FullName,
+                s.Faculty.FacultyName,
+                s.AverageScore,
+            }).ToList<dynamic>(); ;
         }
         public bool DeleteStudent(int studentID)
         {
@@ -43,15 +53,31 @@ namespace DAL
 
         public void AddOrUpdateStudent(Student student)
         {
-            if (student.StudentID == 0)
+            var existingStudent = _context.Students.Find(student.StudentID);
+
+            if (existingStudent == null)
             {
+                // Thêm mới sinh viên
                 _context.Students.Add(student);
             }
             else
             {
-                _context.Entry(student).State = System.Data.Entity.EntityState.Modified;
+                // Cập nhật thông tin sinh viên
+                _context.Entry(existingStudent).CurrentValues.SetValues(student);
+
+                // Đảm bảo Major được nạp lại đúng
+                if (student.MajorID != null)
+                {
+                    existingStudent.Major = _context.Majors.Find(student.MajorID);
+                }
+                else
+                {
+                    existingStudent.Major = null;
+                }
             }
+
             _context.SaveChanges();
         }
     }
-}
+
+    }

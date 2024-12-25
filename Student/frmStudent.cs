@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using BUS;
 using DAL.Models;
@@ -13,6 +14,15 @@ namespace Student
         {
             InitializeComponent();
             LoadStudentData();
+            LoadFacultyData();
+        }
+
+        private void LoadFacultyData()
+        {
+            cboFaculty.DataSource = studentService.getAllFaculty();
+            cboFaculty.DisplayMember = "FacultyName";
+            cboFaculty.ValueMember = "FacultyID";
+            cboFaculty.SelectedIndex = -1;
         }
 
         // 📚 Load dữ liệu sinh viên lên DataGridView
@@ -28,40 +38,34 @@ namespace Student
             {
                 try
                 {
-                    // Retrieve input values
-                    int studentID = int.Parse(txtStudentID.Text);
+                    int studentID = int.TryParse(txtStudentID.Text, out int id) ? id : 0;
                     string fullName = txtFullName.Text;
-                    int? majorID = chkUnregisterMajor.Checked
-                        ? null
-                        : (cboFaculty.SelectedItem != null ? (int?)int.Parse(cboFaculty.SelectedItem.ToString()) : null);
                     double averageScore = double.Parse(txtGPA.Text);
 
-                    // Create a new Student object
+                    int? facultyID = cboFaculty.SelectedValue != null
+                        ? (int?)int.Parse(cboFaculty.SelectedValue.ToString())
+                        : null;
                     var student = new DAL.Models.Student
                     {
                         StudentID = studentID,
                         FullName = fullName,
-                        MajorID = majorID,
-                        AverageScore = averageScore
+                        AverageScore = averageScore,
+                        FacultyID = facultyID
                     };
 
-                    // Save the student object using the service layer
                     studentService.SaveStudent(student);
 
                     MessageBox.Show("Thông tin sinh viên đã được lưu!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadStudentData();
                     ClearInputs();
                 }
-                catch (FormatException ex)
-                {
-                    MessageBox.Show($"Lỗi định dạng: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
+
 
         // ✅ Xóa thông tin sinh viên
         private void btnDelete_Click(object sender, EventArgs e)
@@ -106,6 +110,7 @@ namespace Student
             return true;
         }
 
+
         // ✅ Xóa các ô nhập liệu
         private void ClearInputs()
         {
@@ -125,9 +130,9 @@ namespace Student
 
                 txtStudentID.Text = row.Cells["StudentID"].Value.ToString();
                 txtFullName.Text = row.Cells["FullName"].Value.ToString();
-                cboFaculty.Text = row.Cells["MajorID"]?.Value?.ToString() ?? "N/A";
+                cboFaculty.Text = row.Cells["FacultyName"]?.Value?.ToString() ?? "N/A";
                 txtGPA.Text = row.Cells["AverageScore"].Value.ToString();
-                chkUnregisterMajor.Checked = row.Cells["MajorID"].Value == null;
+                chkUnregisterMajor.Checked = row.Cells["MajorName"].Value == null;
             }
         }
 
